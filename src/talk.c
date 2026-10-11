@@ -142,6 +142,7 @@ int guard_toll(void)
         if (ask_pay_yes_no() || dg.gold < toll) return 1;
         dg.gold = (uint16_t)(dg.gold - toll);
     }
+    draw_status_bar();
     return 0;
 }
 
@@ -254,6 +255,7 @@ int talk_op_pay_gold(void)
         return talk_main_loop();
     }
     dg.gold = (uint16_t)(dg.gold - amount);
+    draw_status_bar();
     if ((dg.objects[dg.npc_state[dg.talk_npc].object].tile & 0xFC) == 0x6C && dg.alms_counter > 99) {
         dg.alms_counter = 0;
         add_byte_capped(99, 1, &dg.karma);
@@ -271,8 +273,8 @@ void talk_op_give_item(uint8_t item)
         p = &dg.inventory[item];
     } else {
         switch (item) {
-        case 0x41: add_word_capped(9999, 1, &dg.food); return;
-        case 0x42: add_word_capped(9999, 1, &dg.gold); return;
+        case 0x41: add_word_capped(9999, 1, &dg.food); draw_status_bar(); return;
+        case 0x42: add_word_capped(9999, 1, &dg.gold); draw_status_bar(); return;
         case 0x43: p = &dg.keys; break;
         case 0x44: p = &dg.gems; break;
         case 0x45: p = &dg.torches; break;
@@ -368,6 +370,7 @@ int talk_op_join_party(void)
             dg.party_size++;
             mark_npc_dead(dg.talk_npc);
             remove_npc(dg.talk_npc);
+            draw_status_bar();
             talk_flush_word();
             dg.talk_ptr = saved;
             return 1;
@@ -718,6 +721,7 @@ void talk_maybe_steal(void)
         for (int i = 7; i >= 0; i--)
             if (dg.scrolls[i]) { sub_byte_floor0(1, &dg.scrolls[i]); return; }
         sub_word_floor0((uint16_t)random_between(0x0F, 1), &dg.gold);
+        draw_status_bar();
         return;
     }
     for (;;) {

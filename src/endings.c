@@ -19,6 +19,7 @@
 #include "town.h"
 #include "video.h"
 #include "view.h"
+#include "world.h"
 
 #define TEXT_BUFFER ((uint16_t)offsetof(struct DGroup, text_buffer))
 #define T(off)      ((const char *)ds_at(TEXT_BUFFER + (off)))   /* text loaded from a .DAT file */
@@ -313,6 +314,8 @@ void captured_by_blackthorn(void)
         set_draw_color(0);
         fill_rect(0xB7, 0xB7, 8, 8);
         dg.z_level = 0xFF;
+        draw_sky_bar();
+        set_wind_direction(-1);
         for (int i = 5; i != 0; i--) {
             delay_ticks(5);
             step_sound();
@@ -362,6 +365,8 @@ void captured_by_blackthorn(void)
         if (dg.objects[8].tile != 0) run_cutscene(0x3716);
     }
     dg.z_level = 0xFF;
+    draw_sky_bar();
+    set_wind_direction(-1);
     dg.party_x = 10;
     dg.party_y = 7;
     dg.keys = 0;

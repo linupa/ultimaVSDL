@@ -15,6 +15,7 @@
 #include "text.h"
 #include "tiles.h"
 #include "view.h"
+#include "world.h"
 
 #define TEXT_BUFFER ((uint16_t)offsetof(struct DGroup, text_buffer))
 #define FILE_NAME(off) ds_str(ds_u16(off))   /* the picture file table at ds:25EA */
@@ -731,6 +732,7 @@ void transfer_from_ultima4(void)
 static int journey_onward(void)
 {
     draw_screen_frame();
+    set_wind_direction(0);
     select_text_window(2);
     set_cursor(0x0C, 0);
     if (dg.location == 0x40) {
@@ -743,6 +745,7 @@ static int journey_onward(void)
         load_file_part(0, 0x200, ool, ds_str(0x323F));     /* SAVED.OOL */
         save_file_part(0x100, ool, ds_str(0x3249));        /* BRIT.OOL */
         save_file_part(0x100, ool + 0x100, ds_str(0x3252));   /* UNDER.OOL */
+        set_wind_direction(-1);
         dg.tile_origin_y = 8;
         return 1;
     }

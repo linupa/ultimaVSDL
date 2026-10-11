@@ -62,7 +62,7 @@ build/u5sdl [-v ega|cga|herc] [-p green|amber|white] [-4] [-s scale] [-j | -m] [
 | `-v cga` | 4 colours, 320×200 |
 | `-v herc` | Hercules monochrome, 640×300; `-v hercraw` shows its dots unblended |
 | `-p green\|amber\|white` | colour of the Hercules monitor (default green) |
-| `-4` | stretch the picture to 4:3, as a PC monitor showed it |
+| `-o` | user original resolutiono. If not, stretch the picture to 4:3, as a PC monitor showed it |
 | `-s n` | window scale (default 3) |
 | `-m` | skip the title sequence and start at the menu |
 | `-j` | skip the menu too: Journey Onward with the saved game |

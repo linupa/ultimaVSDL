@@ -37,10 +37,10 @@ enum { WIN_STATUS = 1, WIN_MESSAGE = 2 };
 
 int main(int argc, char **argv)
 {
-    int scale = 3, aspect = 0, skip_intro = 0, skip_title = 0, video = VIDEO_EGA;
+    int scale = 3, aspect = 1, skip_intro = 0, skip_title = 0, video = VIDEO_EGA;
     const char *dir = ".", *save_dir = "u5save", *scene = NULL;
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], "-4")) aspect = 1;
+        if (!strcmp(argv[i], "-o")) aspect = 0;
         else if (!strcmp(argv[i], "-j")) skip_intro = 1;
         else if (!strcmp(argv[i], "-m")) skip_title = 1;
         else if (!strcmp(argv[i], "-s") && i + 1 < argc) scale = atoi(argv[++i]);
