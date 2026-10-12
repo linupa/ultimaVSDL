@@ -22,7 +22,7 @@ void print_object_description(int tile);     /* a934 */
 void print_sign_text(int offset);            /* a988: offset in text_buffer, -1 = the default sign */
 void read_sign(uint8_t y, uint8_t x, uint8_t z);   /* aa74 */
 void cmd_look(void);                         /* ac2c */
-void map_cell_pos(int row, int col);         /* ad2c: to dir_x / dir_y */
+void map_cell_pos(int row, int col);         /* ad2c: where the area map's next glyph is drawn */
 void draw_map_glyph(int row, int col, int tile);   /* b20e */
 void show_area_map(int y, int x);            /* b38c */
 

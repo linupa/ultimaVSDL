@@ -3,7 +3,7 @@
  * The game draws through a loadable driver: far call to [ds:5350] with the function number as the
  * offset into the driver's jump table (see SESSION-NOTES "GRAPHICS DRIVER"). The port replaces the
  * driver with these functions; video_to_rgb() turns the screen into RGB for SDL or an image file.
- * The basic functions are here; pictures and effects are in picture.c, tiles in tiles.c. */
+ * The basic functions are here; pictures and effects are in picture.cpp, tiles in tiles.cpp. */
 #ifndef U5_VIDEO_H
 #define U5_VIDEO_H
 
@@ -21,12 +21,62 @@
  *         row 3y/2, so a pixel here is 0-3 as well and the pages have 300 rows.
  * The Tandy driver (T1K.DRV) isn't ported. */
 enum { VIDEO_CGA = 0, VIDEO_EGA = 1, VIDEO_TANDY = 2, VIDEO_HERC = 3 };
-void video_set_mode(int type);
+
+/* What differs between the drivers. The video_* functions below work on the pages and go through
+ * the driver in use for anything that depends on it. */
+class VideoDriver {
+public:
+    virtual ~VideoDriver() = default;
+    virtual int type() const = 0;                       /* the game's video_type */
+    virtual bool two_bit() const { return true; }       /* CGA or Hercules */
+    uint8_t color_mask() const { return two_bit() ? 3 : 0x0F; }
+    virtual int rows() const { return SCREEN_H; }       /* 200, or 300 on Hercules */
+    virtual int out_width() const { return SCREEN_W; }  /* of the picture to_rgb makes */
+    /* Hercules: row y of the game is drawn on rows row(y) and the one below, so odd and even rows
+     * overlap; where that would matter (XOR, pictures) even rows get one row and odd rows two. */
+    virtual int row(int y) const { return y; }
+    virtual int row_count(int y, int exclusive) const { (void)y; (void)exclusive; return 1; }
+    /* The page rows a rectangle from game row y1 to y2 covers, and a distance of n game rows. */
+    virtual void rect_rows(int *y1, int *y2) const { (void)y1; (void)y2; }
+    virtual int  distance(int n) const { return n; }
+    /* EGA.DRV copies whole bytes of 8 pixels; the other two mask the ends. */
+    virtual void copy_columns(int *x1, int *x2) const { (void)x1; (void)x2; }
+    virtual void draw_char(uint8_t (*page)[SCREEN_W], int col, int row, const uint8_t *glyph, uint8_t fg, uint8_t bg) const;
+    virtual void to_rgb(const uint8_t (*page)[SCREEN_W], uint8_t *rgb) const = 0;
+};
+
+class EgaDriver : public VideoDriver {
+public:
+    int type() const override { return VIDEO_EGA; }
+    bool two_bit() const override { return false; }
+    void copy_columns(int *x1, int *x2) const override;
+    void to_rgb(const uint8_t (*page)[SCREEN_W], uint8_t *rgb) const override;
+};
+
+class CgaDriver : public VideoDriver {
+public:
+    int type() const override { return VIDEO_CGA; }
+    void to_rgb(const uint8_t (*page)[SCREEN_W], uint8_t *rgb) const override;
+};
+
+class HerculesDriver : public VideoDriver {
+public:
+    int type() const override { return VIDEO_HERC; }
+    int rows() const override { return 300; }
+    int out_width() const override { return SCREEN_W * 2; }
+    int row(int y) const override { return (y * 3) >> 1; }
+    int row_count(int y, int exclusive) const override { return exclusive ? 1 + (y & 1) : 2; }
+    void rect_rows(int *y1, int *y2) const override;
+    int  distance(int n) const override { return (n * 3) >> 1; }
+    void draw_char(uint8_t (*page)[SCREEN_W], int col, int row, const uint8_t *glyph, uint8_t fg, uint8_t bg) const override;
+    void to_rgb(const uint8_t (*page)[SCREEN_W], uint8_t *rgb) const override;
+};
+
+void video_set_mode(int type);          /* picks the driver; anything but CGA or Hercules is EGA */
+const VideoDriver &video_driver(void);
 int  video_mode(void);
-int  video_2bit(void);                  /* CGA or Hercules */
-int  video_rows(void);                  /* 200, or 300 on Hercules */
-/* Hercules: row y of the game is drawn on rows video_row(y) and the one below, so odd and even
- * rows overlap; where that would matter (XOR, pictures) even rows get one row and odd rows two. */
+int  video_2bit(void);
+int  video_rows(void);
 int  video_row(int y);
 int  video_row_count(int y, int exclusive);
 void video_out_size(int *w, int *h);    /* of the picture video_to_rgb makes: 320x200 or 640x300 */
@@ -51,7 +101,7 @@ uint8_t video_get_color(void);
 
 /* drv 0x3F: fill the rectangle (x1,y1)-(x2,y2) inclusive, in pixels, with the current colour.
  * xor != 0 is the carry-flag-set mode: XOR the colour into the screen. Clipped to the screen. */
-void video_fill_rect(int x1, int y1, int x2, int y2, int xor);
+void video_fill_rect(int x1, int y1, int x2, int y2, int xor_mode);
 
 /* drv 0x30: plot one pixel; drv 0x33/0x39/0x3C: line from (x1,y1) to (x2,y2) inclusive, in the
  * current colour (horizontal and vertical lines are the driver's 0x39 and 0x3C). */

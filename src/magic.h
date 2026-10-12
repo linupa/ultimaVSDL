@@ -16,13 +16,18 @@
 /* CAST2.OVL */
 void spell_effect(int fx);                   /* e1e0: sound and a flash of the view */
 int  ask_target_member(void);                /* e27e: "On who: " */
-int  ask_spell_direction(void);              /* e4e6: key 1-4 (W E N S) or 0; dir_x / dir_y = the square */
+/* The square a spell is aimed at: the one next to the caster in the direction chosen (the
+ * caster's own if none was). */
+struct Target {
+    uint16_t x, y;
+};
+int  ask_spell_direction(Target *target = nullptr);   /* e4e6: key 1-4 (W E N S) or 0; the square in *target */
 int  heal_member(int member);                /* e5a2: 1-30 hit points; 0 if dead */
 void change_wind(int show_fx, int dir);      /* e5ea */
 void party_view_effect(void);                /* e64c: the whole view lit for 20 ticks */
 int  summon_daemon(int from_scroll);         /* e6a2 */
 void print_coordinates(void);                /* e8cc */
-int  magic_unlock_door(void);                /* e948 */
+int  magic_unlock_door(Target *where = nullptr);   /* e948: -1 no direction, 0 no such door, 1 unlocked; the square in *where */
 int  dispel_field(int show_fx);              /* e99c */
 void set_light(uint8_t turns);               /* eaca */
 void start_timed_spell(int fx, uint8_t turns, uint8_t letter);   /* ead8 */
@@ -60,8 +65,8 @@ void use_moonstone(int moonstone);           /* d4bc */
 void use_shard(unsigned shard);              /* d534 */
 int  use_remove_item(unsigned item);         /* d6e4 */
 void cmd_use(void);                          /* d712 */
-int  plot_spell_pixel(unsigned color, unsigned y, int x);   /* db30 */
-int  trace_spell_cone(int dir, int caster, int tile, int *hit_x, int *hit_y);   /* dbb6 */
+int  plot_spell_pixel(unsigned color, unsigned y, int x, struct Square *square);   /* db30 */
+int  trace_spell_cone(int dir, int caster, int tile, int *hit_x, int *hit_y, struct Square first);   /* dbb6 */
 void cast_area_spell(int tile, int kind, int caster);       /* dee0 */
 
 #endif

@@ -3,17 +3,18 @@
 #   test/   headless tests and their scripted platform
 #   build/  everything that is made: binaries, and what the tests write (screenshots, saves, logs)
 GAME   ?= /home/linupa/srcs/ultima5
-CC     ?= gcc
-CFLAGS ?= -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -O1
-CPPFLAGS += -Isrc
+CXX    ?= g++
+CXXFLAGS ?= -std=c++17 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -O1
+# -iquote, not -I: src/strings.h must not stand in for the system <strings.h>.
+CPPFLAGS += -iquote src
 
 SDL_CFLAGS ?= $(shell sdl2-config --cflags)
 SDL_LIBS   ?= $(shell sdl2-config --libs)
 
 B = build
 
-GAME_SRC = $(addprefix src/,sound.c dungeon.c look.c shrine.c magic.c combat.c comsubs.c game.c cmds.c sjog.c outdoor.c world.c endings.c intro.c story.c picture.c shops.c status.c stats.c talk.c misc.c town.c npc.c objects.c view.c map.c tiles.c gfx.c lzw.c commands.c input.c text.c video.c files.c data.c)
-GAME_HDR = $(wildcard src/*.h)
+GAME_SRC = $(addprefix src/,sound.cpp dungeon.cpp look.cpp shrine.cpp magic.cpp combat.cpp comsubs.cpp game.cpp cmds.cpp sjog.cpp outdoor.cpp world.cpp endings.cpp intro.cpp story.cpp picture.cpp pictures.cpp party.cpp shops.cpp status.cpp stats.cpp strings.cpp talk.cpp misc.cpp town.cpp npc.cpp objects.cpp view.cpp map.cpp tiles.cpp gfx.cpp gfx_state.cpp lzw.cpp savegame.cpp gamedata.cpp gametime.cpp items.cpp monsters.cpp spells.cpp map_places.cpp commands.cpp input.cpp text.cpp textbuf.cpp video.cpp files.cpp)
+GAME_HDR = $(wildcard src/*.h test/*.h)
 
 # Tests that run the game on the scripted platform.
 SCRIPTED = test_view test_npc test_talk test_shops test_intro test_endings test_game test_video
@@ -21,23 +22,34 @@ TESTS    = test_data test_text $(SCRIPTED) test_sound
 
 all: $(addprefix $(B)/,$(TESTS) u5sdl)
 
-$(B):
-	mkdir -p $(B)
+GAME_OBJ = $(patsubst src/%.cpp,$(B)/obj/%.o,$(GAME_SRC))
 
-$(B)/test_data: test/test_data.c src/data.c src/data.h | $(B)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ test/test_data.c src/data.c
+$(B) $(B)/obj:
+	mkdir -p $@
 
-$(B)/test_text: test/test_text.c $(addprefix src/,text.c video.c files.c lzw.c data.c) $(GAME_HDR) | $(B)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ test/test_text.c $(addprefix src/,text.c video.c files.c lzw.c data.c)
+# Every source is compiled once; the binaries differ in their main and their platform.
+$(B)/obj/%.o: src/%.cpp $(GAME_HDR) | $(B)/obj
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-$(addprefix $(B)/,$(SCRIPTED)): $(B)/%: test/%.c test/platform_script.c $(GAME_SRC) $(GAME_HDR) | $(B)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< test/platform_script.c $(GAME_SRC)
+$(B)/obj/%.o: test/%.cpp $(GAME_HDR) | $(B)/obj
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-$(B)/test_sound: test/test_sound.c $(GAME_SRC) $(GAME_HDR) | $(B)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ test/test_sound.c $(GAME_SRC)
+$(B)/obj/sdl_main.o $(B)/obj/sdl_platform.o: CXXFLAGS += $(SDL_CFLAGS)
 
-$(B)/u5sdl: src/sdl_main.c src/sdl_platform.c $(GAME_SRC) $(GAME_HDR) | $(B)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(SDL_CFLAGS) -o $@ src/sdl_main.c src/sdl_platform.c $(GAME_SRC) $(SDL_LIBS)
+$(B)/test_data: $(addprefix $(B)/obj/,test_data.o strings.o gamedata.o files.o lzw.o pictures.o map_places.o savegame.o party.o gametime.o gfx_state.o)
+	$(CXX) -o $@ $^
+
+$(B)/test_text: $(addprefix $(B)/obj/,test_text.o text.o video.o files.o lzw.o strings.o gamedata.o pictures.o gfx_state.o)
+	$(CXX) -o $@ $^
+
+$(addprefix $(B)/,$(SCRIPTED)): $(B)/%: $(B)/obj/%.o $(B)/obj/platform_script.o $(GAME_OBJ)
+	$(CXX) -o $@ $^
+
+$(B)/test_sound: $(B)/obj/test_sound.o $(GAME_OBJ)
+	$(CXX) -o $@ $^
+
+$(B)/u5sdl: $(B)/obj/sdl_main.o $(B)/obj/sdl_platform.o $(GAME_OBJ)
+	$(CXX) -o $@ $^ $(SDL_LIBS)
 
 run: $(B)/u5sdl
 	$(B)/u5sdl -w $(B)/u5save $(GAME)

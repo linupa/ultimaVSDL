@@ -1,6 +1,6 @@
 /* sjog.h - Search, Jimmy, Open and Get outside the dungeons and combat (SJOG.OVL c7xx-daxx).
- * Parameter order follows the Ghidra signatures. The dungeon versions are in dungeon.c and the
- * combat half of the overlay in combat.c.
+ * Parameter order follows the Ghidra signatures. The dungeon versions are in dungeon.cpp and the
+ * combat half of the overlay in combat.cpp.
  *
  * Small objects on the map are MapObjects whose tile is the kind and whose `hull` is the amount
  * or id: 1 chest (hull = level, bit 7 = trapped), 2 gold, 3 potion, 4 scroll, 5/6 and 9-0xC

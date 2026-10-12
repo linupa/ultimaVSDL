@@ -1,5 +1,5 @@
 /* commands.h - command input and movement: get_command_key, passability, entering and leaving
- * towns. The movement here is the viewer's simplified version (see commands.c). */
+ * towns. The movement here is the viewer's simplified version (see commands.cpp). */
 #ifndef U5_COMMANDS_H
 #define U5_COMMANDS_H
 
@@ -18,17 +18,22 @@ int  enter_town_from_map(const char *prompt);  /* OUTSUBS a618: 0 if entered, 1 
 int  read_number(int max_digits);              /* 3b9e: typed number, optional sign */
 void wait_turns(int turns);                    /* 3ae6: n x (world_tick + one tick) */
 void read_line(int max_len, char *buf);       /* 3b1c: typed line, animating while waiting */
-int  ask_direction(void);                      /* 35ec: 0 = "Pass", else sets dg.dir_x / dg.dir_y */
+/* A step chosen at a direction prompt: -1, 0 or 1 each way, kept as the original's words, so -1
+ * is 0xFFFF and adding it to a coordinate wraps the way the original's arithmetic does. */
+struct Direction {
+    uint16_t dx, dy;
+};
+int  ask_direction(Direction *dir = nullptr);  /* 35ec: 0 = "Pass" (and no step), else the step in *dir */
 void restore_open_door(uint8_t y, uint8_t x, uint8_t tile);   /* 39cc */
 
 /* Game messages in the data segment. */
-#define MSG_NORTH   0xA2A6
-#define MSG_SOUTH   0xA2AE
-#define MSG_WEST    0xA2B6
-#define MSG_EAST    0xA2BC
-#define MSG_BLOCKED 0x26D8
-#define MSG_NOT_HERE 0x8DDC
-#define MSG_ENTER_WHAT 0xA158
-#define MSG_OPEN    0x6E22
+#define MSG_NORTH Strings::North_A2A6
+#define MSG_SOUTH Strings::South_A2AE
+#define MSG_WEST Strings::West_A2B6
+#define MSG_EAST Strings::East_A2BC
+#define MSG_BLOCKED Strings::ocked_26D8
+#define MSG_NOT_HERE Strings::t_here_8DDC
+#define MSG_ENTER_WHAT Strings::ter_what_A158
+#define MSG_OPEN Strings::Open_6E22
 
 #endif

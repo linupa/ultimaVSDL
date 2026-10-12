@@ -1,6 +1,6 @@
 # Ultima V in SDL
 
-A port of *Ultima V: Warriors of Destiny* (the 1988 DOS version) to C and SDL2, made from the
+A port of *Ultima V: Warriors of Destiny* (the 1988 DOS version) to C++ and SDL2, made from the
 decompiled original. It plays the whole game - title sequence, character creation, towns,
 dungeons, combat, magic, the endings - using the original game's data files, and can stand in
 for three of the original graphics drivers: EGA, CGA and Hercules.
@@ -26,7 +26,7 @@ game; the port reads them from the game directory at run time.
   `EGA.DRV`, `CGA.DRV`, `HER.DRV`, `TILES.16`, `TILES.4`, `BRIT.DAT`, `SAVED.GAM`. If the game came
   on several floppy disks, copy the contents of all of them into the one directory. File names
   may be upper or lower case. Files from any other platform's release will not work.
-- A C compiler and `make`.
+- A C++17 compiler (`g++`) and `make`.
 - SDL2 development files. On Debian, Ubuntu or WSL: `sudo apt install build-essential libsdl2-dev`
 
 ## Build
@@ -104,12 +104,12 @@ real data files and leave screenshots (`build/*.ppm`) and logs there.
 
 | Directory | Contents |
 |---|---|
-| `src/` | the ported game and the SDL front end (`sdl_main.c`, `sdl_platform.c`) |
+| `src/` | the ported game and the SDL front end (`sdl_main.cpp`, `sdl_platform.cpp`) |
 | `test/` | headless tests and their scripted platform |
 | `build/` | binaries and test output (not in git) |
 | `docs/screenshots/` | pictures for this page |
 
-`src/data.c` and `src/data.h` are generated from the game's `DATA.OVL` by the reverse-engineering
+`src/data.cpp` and `src/data.h` are generated from the game's `DATA.OVL` by the reverse-engineering
 project's `gen_data.py`; they are not edited by hand.
 
 ## Not included
